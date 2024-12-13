@@ -1,5 +1,6 @@
 using Blog.Data;
 using Blog.Interface;
+using Blog.Middlewares;
 using Blog.Repositories;
 using Blog.Repository.Blogs;
 using Blog.Services;
@@ -57,7 +58,11 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(Program));
 
-
+builder.Services.AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("BlogDb")
+    .AddEntityFrameworkStores<BlogDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -88,6 +93,8 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -97,6 +104,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

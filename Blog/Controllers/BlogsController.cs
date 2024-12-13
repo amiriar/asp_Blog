@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Blog.Interface;
 using Blog.Dtos;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Blog.Controllers
 {
@@ -16,7 +17,10 @@ namespace Blog.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? filterOn,
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(Roles = "Reader")]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? filterOn,
             [FromQuery] string? filterQuery,
             [FromQuery] string? sortBy,
             [FromQuery] bool? isAscending,
@@ -40,6 +44,7 @@ namespace Blog.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Create(CreateBlogdto createBlogdto)
         {
             var blog = await _blogInterface.Create(createBlogdto);
@@ -48,7 +53,8 @@ namespace Blog.Controllers
 
         [HttpPatch]
         [Route("{Id:Guid}")]
-        public async Task<IActionResult> Create(Guid Id, UpdateBlogdto updateBlogdto)
+        [Authorize(Roles = "Writer")]
+        public async Task<IActionResult> Update(Guid Id, UpdateBlogdto updateBlogdto)
         {
             var UpdatedBlog = await _blogInterface.Update(Id, updateBlogdto);
             return Ok(UpdatedBlog);
@@ -56,6 +62,7 @@ namespace Blog.Controllers
 
         [HttpDelete]
         [Route("{Id:Guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete(Guid Id)
         {
             var deletedBlog = await _blogInterface.Delete(Id);
